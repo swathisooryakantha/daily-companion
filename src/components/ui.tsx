@@ -3,7 +3,7 @@ import type { Routine, RoutineCompletion } from '../lib/types'
 
 export function Card({ children, className = '', style }: { children: ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
-    <div className={`rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-sm backdrop-blur-sm md:p-6 ${className}`} style={style}>
+    <div className={`companion-card rounded-2xl border border-white/10 p-5 shadow-sm backdrop-blur-sm md:p-6 ${className}`} style={style}>
       {children}
     </div>
   )
@@ -81,6 +81,30 @@ export function PersonalityBadge({ name, emoji }: { name: string; emoji: string 
       <span>{emoji}</span>
       {name}
     </span>
+  )
+}
+
+export function Doodle({ emojis }: { emojis: string[] }) {
+  return (
+    <div aria-hidden className="pointer-events-none absolute right-4 top-4 flex gap-1.5 text-base opacity-25">
+      {emojis.map((e, i) => (
+        <span key={i}>{e}</span>
+      ))}
+    </div>
+  )
+}
+
+const CONFETTI_EMOJI = ['🎉', '✨', '🎊', '⭐', '💫']
+
+export function Confetti() {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+      {Array.from({ length: 16 }, (_, i) => (
+        <span key={i} className="confetti-piece text-lg" style={{ left: `${(i * 37) % 100}%`, animationDelay: `${(i % 7) * 0.15}s` }}>
+          {CONFETTI_EMOJI[i % CONFETTI_EMOJI.length]}
+        </span>
+      ))}
+    </div>
   )
 }
 

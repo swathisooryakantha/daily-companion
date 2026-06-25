@@ -23,7 +23,7 @@ import {
 import { groundingExerciseForIndex } from '../lib/grounding'
 import { MAX_CURIOSITY_TURNS, curiosityForIndex } from '../lib/curiosity'
 import { moonPhase } from '../lib/moon'
-import { Button, Card, EmptyState, Input, PersonalityBadge, ProgressBar, RoutineChecklist, VoiceLine } from '../components/ui'
+import { Button, Card, Confetti, Doodle, EmptyState, Input, PersonalityBadge, ProgressBar, RoutineChecklist, VoiceLine } from '../components/ui'
 
 function todayStr() {
   return format(new Date(), 'yyyy-MM-dd')
@@ -46,10 +46,8 @@ export default function Today() {
   const completedCount = entries.filter((e) => e.completed).length
   const seed = entry?.day_number ?? completedCount + 1
 
-  const accent = entry ? PERSONALITY_INFO[entry.personality].accent : undefined
-
   return (
-    <div className="space-y-6" style={personalityThemeStyle(accent)}>
+    <div className="space-y-6" style={personalityThemeStyle(entry?.personality)}>
       <ArcHeader challengeLength={settings.challenge_length} completedCount={completedCount} date={date} />
 
       {!entry && (
@@ -209,6 +207,7 @@ function ModeStep({ entry, seed, onPick }: { entry: DailyEntry; seed: number; on
   const info = PERSONALITY_INFO[entry.personality]
   return (
     <Card>
+      <Doodle emojis={info.doodles} />
       <PersonalityBadge name={info.name} emoji={info.emoji} />
       <VoiceLine className="mt-3">{getGreeting(entry.personality, seed)}</VoiceLine>
       <h2 className="mt-4 font-display text-xl text-[var(--paper)]">Hard or soft today?</h2>
@@ -251,6 +250,7 @@ function RoutinesStep({
 
   return (
     <Card>
+      <Doodle emojis={info.doodles} />
       <PersonalityBadge name={info.name} emoji={info.emoji} />
       <VoiceLine className="mt-3">{getRoutineIntro(entry.personality, seed)}</VoiceLine>
 
@@ -309,6 +309,7 @@ function GroundingStep({
   const info = PERSONALITY_INFO[entry.personality]
   return (
     <Card>
+      <Doodle emojis={info.doodles} />
       <PersonalityBadge name={info.name} emoji={info.emoji} />
       <VoiceLine className="mt-3">{getGroundingIntro(entry.personality, seed)}</VoiceLine>
       <h2 className="mt-3 font-display text-lg text-[var(--paper)]">{exercise.title}</h2>
@@ -398,6 +399,7 @@ function CuriosityStep({
 
   return (
     <Card>
+      <Doodle emojis={info.doodles} />
       <PersonalityBadge name={info.name} emoji={info.emoji} />
       <VoiceLine className="mt-3">{getCuriosityIntro(entry.personality, seed)}</VoiceLine>
       <p className="mt-3 font-display text-lg leading-snug text-[var(--paper)]">{fact.text}</p>
@@ -444,15 +446,22 @@ function DoneRecap({
   const mood = MOOD_OPTIONS.find((m) => m.mood === entry.mood)
   const doneCount = completions.filter((c) => c.done).length
   const isMilestone = entry.day_number === 30 || entry.day_number === challengeLength
+  const isFullClear = routines.length > 0 && doneCount === routines.length && entry.grounding_done
   const seed = entry.day_number ?? 1
 
   return (
-    <Card>
+    <Card className="relative overflow-hidden">
+      {isFullClear && <Confetti />}
+      <Doodle emojis={info.doodles} />
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs uppercase tracking-wide text-white/30">Day {entry.day_number}</p>
         <PersonalityBadge name={info.name} emoji={info.emoji} />
       </div>
       <VoiceLine className="mt-3">{entry.mode ? getCompleteLine(entry.personality, entry.mode, seed) : ''}</VoiceLine>
+
+      {isFullClear && (
+        <p className="mt-2 font-display text-base text-[var(--accent)]">🎉 Full clear today — every routine and grounding, done.</p>
+      )}
 
       {isMilestone && <p className="mt-2 text-sm text-[var(--accent)]">{getMilestoneLine(entry.personality, seed)}</p>}
 
