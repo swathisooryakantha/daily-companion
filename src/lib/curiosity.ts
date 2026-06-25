@@ -1,7 +1,62 @@
 export interface CuriosityEntry {
   id: string
   text: string
+  link?: string
 }
+
+/** A short book premise, mixed into the same finite rotation as trivia facts. */
+export const BOOK_PREMISE_ENTRIES: CuriosityEntry[] = [
+  {
+    id: 'b01',
+    text: 'Nineteen Eighty-Four: a man living under a totalitarian state that rewrites history starts to think for himself — and gets noticed.',
+    link: 'https://en.wikipedia.org/wiki/Nineteen_Eighty-Four',
+  },
+  {
+    id: 'b02',
+    text: 'Frankenstein: a scientist builds a living creature from dead parts, then abandons it — and the abandonment is the real horror.',
+    link: 'https://en.wikipedia.org/wiki/Frankenstein',
+  },
+  {
+    id: 'b03',
+    text: 'Pride and Prejudice: two people talk themselves out of liking each other, then have to talk themselves back in.',
+    link: 'https://en.wikipedia.org/wiki/Pride_and_Prejudice',
+  },
+  {
+    id: 'b04',
+    text: 'Dune: a desert planet holds the one resource the whole galaxy depends on, and a teenager inherits the fight over it.',
+    link: 'https://en.wikipedia.org/wiki/Dune_(novel)',
+  },
+  {
+    id: 'b05',
+    text: 'The Hobbit: a homebody gets talked into a journey he never wanted, and turns out to be good at it anyway.',
+    link: 'https://en.wikipedia.org/wiki/The_Hobbit',
+  },
+  {
+    id: 'b06',
+    text: 'To Kill a Mockingbird: a child watches her father defend an innocent man in a town that has already decided the verdict.',
+    link: 'https://en.wikipedia.org/wiki/To_Kill_a_Mockingbird',
+  },
+  {
+    id: 'b07',
+    text: 'Brave New World: a society engineers happiness so completely that wanting anything else looks like a disease.',
+    link: 'https://en.wikipedia.org/wiki/Brave_New_World',
+  },
+  {
+    id: 'b08',
+    text: 'Crime and Punishment: a man commits the perfect crime and then can\'t survive what it does to his own mind.',
+    link: 'https://en.wikipedia.org/wiki/Crime_and_Punishment',
+  },
+  {
+    id: 'b09',
+    text: 'The Great Gatsby: a man builds an entire life as a lure for one person, who isn\'t looking.',
+    link: 'https://en.wikipedia.org/wiki/The_Great_Gatsby',
+  },
+  {
+    id: 'b10',
+    text: 'One Hundred Years of Solitude: a family keeps repeating the same mistakes across generations, as if the town itself won\'t let them learn.',
+    link: 'https://en.wikipedia.org/wiki/One_Hundred_Years_of_Solitude',
+  },
+]
 
 /** Finite — not a feed. Cycles by day, with a couple extra "turn the page" reveals at most. */
 export const CURIOSITY_ENTRIES: CuriosityEntry[] = [
@@ -45,6 +100,7 @@ export const CURIOSITY_ENTRIES: CuriosityEntry[] = [
   { id: 'c38', text: 'Some species of bamboo can grow nearly a meter in a single day.' },
   { id: 'c39', text: 'Saturn’s moon Enceladus shoots geysers of water into space from its south pole.' },
   { id: 'c40', text: 'Onions can make you cry because of a gas that reacts with the water in your eyes.' },
+  ...BOOK_PREMISE_ENTRIES,
 ]
 
 export function curiosityForIndex(index: number): CuriosityEntry {

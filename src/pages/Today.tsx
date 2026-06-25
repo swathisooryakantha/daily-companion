@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { useAppSettings } from '../hooks/useAppSettings'
 import { useTable } from '../hooks/useTable'
@@ -18,11 +18,12 @@ import {
   getModeLine,
   getRoutineHype,
   getRoutineIntro,
+  personalityThemeStyle,
 } from '../lib/voices'
 import { groundingExerciseForIndex } from '../lib/grounding'
 import { MAX_CURIOSITY_TURNS, curiosityForIndex } from '../lib/curiosity'
 import { moonPhase } from '../lib/moon'
-import { Button, Card, EmptyState, Input, ProgressBar, VoiceLine } from '../components/ui'
+import { Button, Card, EmptyState, Input, PersonalityBadge, ProgressBar, RoutineChecklist, VoiceLine } from '../components/ui'
 
 function todayStr() {
   return format(new Date(), 'yyyy-MM-dd')
@@ -45,8 +46,10 @@ export default function Today() {
   const completedCount = entries.filter((e) => e.completed).length
   const seed = entry?.day_number ?? completedCount + 1
 
+  const accent = entry ? PERSONALITY_INFO[entry.personality].accent : undefined
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={personalityThemeStyle(accent)}>
       <ArcHeader challengeLength={settings.challenge_length} completedCount={completedCount} date={date} />
 
       {!entry && (
@@ -86,6 +89,12 @@ export default function Today() {
         <GroundingStep
           entry={entry}
           seed={seed}
+          routines={routines}
+          completions={completions.filter((c) => c.daily_entry_id === entry.id)}
+          onToggleRoutine={(routineId, existing) => {
+            if (existing) updateCompletion(existing.id, { done: !existing.done })
+            else insertCompletion({ daily_entry_id: entry.id, routine_id: routineId, done: true } as Partial<RoutineCompletion>)
+          }}
           onDone={(exerciseId) =>
             updateEntry(entry.id, { grounding_done: true, grounding_exercise_id: exerciseId, current_step: 'curiosity' })
           }
@@ -97,6 +106,12 @@ export default function Today() {
         <CuriosityStep
           entry={entry}
           seed={seed}
+          routines={routines}
+          completions={completions.filter((c) => c.daily_entry_id === entry.id)}
+          onToggleRoutine={(routineId, existing) => {
+            if (existing) updateCompletion(existing.id, { done: !existing.done })
+            else insertCompletion({ daily_entry_id: entry.id, routine_id: routineId, done: true } as Partial<RoutineCompletion>)
+          }}
           onTurnPage={() => updateEntry(entry.id, { curiosity_viewed_count: entry.curiosity_viewed_count + 1 })}
           onFinish={(curiosityId) => {
             const dayNumber = completedCount + 1
@@ -106,7 +121,16 @@ export default function Today() {
       )}
 
       {entry && entry.current_step === 'done' && (
-        <DoneRecap entry={entry} challengeLength={settings.challenge_length} routines={routines} completions={completions.filter((c) => c.daily_entry_id === entry.id)} />
+        <DoneRecap
+          entry={entry}
+          challengeLength={settings.challenge_length}
+          routines={routines}
+          completions={completions.filter((c) => c.daily_entry_id === entry.id)}
+          onToggleRoutine={(routineId, existing) => {
+            if (existing) updateCompletion(existing.id, { done: !existing.done })
+            else insertCompletion({ daily_entry_id: entry.id, routine_id: routineId, done: true } as Partial<RoutineCompletion>)
+          }}
+        />
       )}
     </div>
   )
@@ -185,8 +209,8 @@ function ModeStep({ entry, seed, onPick }: { entry: DailyEntry; seed: number; on
   const info = PERSONALITY_INFO[entry.personality]
   return (
     <Card>
-      <VoiceLine emoji={info.emoji}>{getGreeting(entry.personality, seed)}</VoiceLine>
-      <p className="mt-1 text-xs uppercase tracking-wide text-white/30">{info.name}</p>
+      <PersonalityBadge name={info.name} emoji={info.emoji} />
+      <VoiceLine className="mt-3">{getGreeting(entry.personality, seed)}</VoiceLine>
       <h2 className="mt-4 font-display text-xl text-[var(--paper)]">Hard or soft today?</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <button onClick={() => onPick('hard')} className="rounded-2xl border border-white/15 bg-white/5 p-4 text-left transition hover:bg-white/10">
@@ -223,24 +247,18 @@ function RoutinesStep({
 }) {
   const [draft, setDraft] = useState('')
   const doneCount = completions.filter((c) => c.done).length
+  const info = PERSONALITY_INFO[entry.personality]
 
   return (
     <Card>
-      <VoiceLine>{getRoutineIntro(entry.personality, seed)}</VoiceLine>
+      <PersonalityBadge name={info.name} emoji={info.emoji} />
+      <VoiceLine className="mt-3">{getRoutineIntro(entry.personality, seed)}</VoiceLine>
 
       {routines.length === 0 ? (
         <EmptyState text="No routines yet — add the few things you want today's voice to track." />
       ) : (
-        <div className="mt-4 space-y-2">
-          {routines.map((r) => {
-            const existing = completions.find((c) => c.routine_id === r.id)
-            return (
-              <label key={r.id} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm">
-                <input type="checkbox" checked={existing?.done ?? false} onChange={() => onToggle(r.id, existing)} className="size-4 accent-[var(--accent)]" />
-                <span className={existing?.done ? 'text-white/40 line-through' : 'text-[var(--paper)]'}>{r.name}</span>
-              </label>
-            )
-          })}
+        <div className="mt-4">
+          <RoutineChecklist routines={routines} completions={completions} onToggle={onToggle} />
         </div>
       )}
 
@@ -273,53 +291,121 @@ function RoutinesStep({
 function GroundingStep({
   entry,
   seed,
+  routines,
+  completions,
+  onToggleRoutine,
   onDone,
   onSkip,
 }: {
   entry: DailyEntry
   seed: number
+  routines: Routine[]
+  completions: RoutineCompletion[]
+  onToggleRoutine: (routineId: string, existing: RoutineCompletion | undefined) => void
   onDone: (exerciseId: string) => void
   onSkip: (exerciseId: string) => void
 }) {
   const exercise = groundingExerciseForIndex(seed - 1)
+  const info = PERSONALITY_INFO[entry.personality]
   return (
     <Card>
-      <VoiceLine>{getGroundingIntro(entry.personality, seed)}</VoiceLine>
+      <PersonalityBadge name={info.name} emoji={info.emoji} />
+      <VoiceLine className="mt-3">{getGroundingIntro(entry.personality, seed)}</VoiceLine>
       <h2 className="mt-3 font-display text-lg text-[var(--paper)]">{exercise.title}</h2>
       <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-white/70">
         {exercise.steps.map((s, i) => (
           <li key={i}>{s}</li>
         ))}
       </ol>
+
+      <GroundingTimer key={exercise.id} />
+
       <div className="mt-4 flex gap-2">
         <Button onClick={() => onDone(exercise.id)}>{getGroundingDone(entry.personality, seed)}</Button>
         <Button variant="ghost" onClick={() => onSkip(exercise.id)}>
           Skip for today
         </Button>
       </div>
+
+      {routines.length > 0 && (
+        <div className="mt-5 border-t border-white/10 pt-4">
+          <p className="text-xs uppercase tracking-wide text-white/40">Today's routines</p>
+          <div className="mt-3">
+            <RoutineChecklist routines={routines} completions={completions} onToggle={onToggleRoutine} />
+          </div>
+        </div>
+      )}
     </Card>
+  )
+}
+
+function GroundingTimer() {
+  const [running, setRunning] = useState(false)
+  const [seconds, setSeconds] = useState(0)
+
+  useEffect(() => {
+    if (!running) return
+    const id = setInterval(() => setSeconds((s) => s + 1), 1000)
+    return () => clearInterval(id)
+  }, [running])
+
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+
+  return (
+    <div className="mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+      <span className="font-display text-lg tabular-nums text-[var(--paper)]">
+        {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
+      </span>
+      <Button variant="secondary" onClick={() => setRunning((r) => !r)}>
+        {running ? 'Close' : seconds > 0 ? 'Resume' : 'Start'}
+      </Button>
+      {!running && seconds > 0 && (
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setSeconds(0)
+          }}
+        >
+          Reset
+        </Button>
+      )}
+    </div>
   )
 }
 
 function CuriosityStep({
   entry,
   seed,
+  routines,
+  completions,
+  onToggleRoutine,
   onTurnPage,
   onFinish,
 }: {
   entry: DailyEntry
   seed: number
+  routines: Routine[]
+  completions: RoutineCompletion[]
+  onToggleRoutine: (routineId: string, existing: RoutineCompletion | undefined) => void
   onTurnPage: () => void
   onFinish: (curiosityId: string) => void
 }) {
   const factIndex = seed - 1 + entry.curiosity_viewed_count
   const fact = curiosityForIndex(factIndex)
   const canTurnPage = entry.curiosity_viewed_count < MAX_CURIOSITY_TURNS
+  const info = PERSONALITY_INFO[entry.personality]
 
   return (
     <Card>
-      <VoiceLine>{getCuriosityIntro(entry.personality, seed)}</VoiceLine>
+      <PersonalityBadge name={info.name} emoji={info.emoji} />
+      <VoiceLine className="mt-3">{getCuriosityIntro(entry.personality, seed)}</VoiceLine>
       <p className="mt-3 font-display text-lg leading-snug text-[var(--paper)]">{fact.text}</p>
+      {fact.link && (
+        <a href={fact.link} target="_blank" rel="noreferrer" className="mt-1.5 inline-block text-xs text-[var(--accent)] underline underline-offset-2">
+          Read more →
+        </a>
+      )}
       <div className="mt-4 flex flex-wrap gap-2">
         {canTurnPage && (
           <Button variant="secondary" onClick={onTurnPage}>
@@ -328,6 +414,15 @@ function CuriosityStep({
         )}
         <Button onClick={() => onFinish(fact.id)}>Finish the day</Button>
       </div>
+
+      {routines.length > 0 && (
+        <div className="mt-5 border-t border-white/10 pt-4">
+          <p className="text-xs uppercase tracking-wide text-white/40">Today's routines</p>
+          <div className="mt-3">
+            <RoutineChecklist routines={routines} completions={completions} onToggle={onToggleRoutine} />
+          </div>
+        </div>
+      )}
     </Card>
   )
 }
@@ -337,11 +432,13 @@ function DoneRecap({
   challengeLength,
   routines,
   completions,
+  onToggleRoutine,
 }: {
   entry: DailyEntry
   challengeLength: ChallengeLength
   routines: Routine[]
   completions: RoutineCompletion[]
+  onToggleRoutine: (routineId: string, existing: RoutineCompletion | undefined) => void
 }) {
   const info = PERSONALITY_INFO[entry.personality]
   const mood = MOOD_OPTIONS.find((m) => m.mood === entry.mood)
@@ -351,10 +448,11 @@ function DoneRecap({
 
   return (
     <Card>
-      <p className="text-xs uppercase tracking-wide text-white/30">
-        Day {entry.day_number} · {info.name} {info.emoji}
-      </p>
-      <VoiceLine>{entry.mode ? getCompleteLine(entry.personality, entry.mode, seed) : ''}</VoiceLine>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs uppercase tracking-wide text-white/30">Day {entry.day_number}</p>
+        <PersonalityBadge name={info.name} emoji={info.emoji} />
+      </div>
+      <VoiceLine className="mt-3">{entry.mode ? getCompleteLine(entry.personality, entry.mode, seed) : ''}</VoiceLine>
 
       {isMilestone && <p className="mt-2 text-sm text-[var(--accent)]">{getMilestoneLine(entry.personality, seed)}</p>}
 
@@ -380,6 +478,15 @@ function DoneRecap({
           <dd>{entry.grounding_done ? 'Done' : 'Skipped'}</dd>
         </div>
       </dl>
+
+      {routines.length > 0 && (
+        <div className="mt-4 border-t border-white/10 pt-4">
+          <p className="text-xs uppercase tracking-wide text-white/40">Edit today's routines</p>
+          <div className="mt-3">
+            <RoutineChecklist routines={routines} completions={completions} onToggle={onToggleRoutine} />
+          </div>
+        </div>
+      )}
 
       <p className="mt-4 text-sm text-white/40">That happened today. Come back tomorrow — there's nothing else here for now.</p>
     </Card>

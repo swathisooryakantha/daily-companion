@@ -1,16 +1,17 @@
 import type { ReactNode } from 'react'
+import type { Routine, RoutineCompletion } from '../lib/types'
 
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
+export function Card({ children, className = '', style }: { children: ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
-    <div className={`rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-sm backdrop-blur-sm md:p-6 ${className}`}>
+    <div className={`rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-sm backdrop-blur-sm md:p-6 ${className}`} style={style}>
       {children}
     </div>
   )
 }
 
-export function VoiceLine({ children, emoji }: { children: ReactNode; emoji?: string }) {
+export function VoiceLine({ children, emoji, className = '' }: { children: ReactNode; emoji?: string; className?: string }) {
   return (
-    <p className="font-display text-lg leading-snug text-[var(--paper)]">
+    <p className={`font-display text-lg leading-snug text-[var(--paper)] ${className}`}>
       {emoji && <span className="mr-2">{emoji}</span>}
       {children}
     </p>
@@ -72,4 +73,38 @@ export function ProgressBar({ value, markers = [] }: { value: number; markers?: 
 
 export function EmptyState({ text }: { text: string }) {
   return <p className="py-8 text-center text-sm text-white/40">{text}</p>
+}
+
+export function PersonalityBadge({ name, emoji }: { name: string; emoji: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-dim)] px-3 py-1 text-xs font-medium text-[var(--paper)]">
+      <span>{emoji}</span>
+      {name}
+    </span>
+  )
+}
+
+export function RoutineChecklist({
+  routines,
+  completions,
+  onToggle,
+}: {
+  routines: Routine[]
+  completions: RoutineCompletion[]
+  onToggle: (routineId: string, existing: RoutineCompletion | undefined) => void
+}) {
+  if (routines.length === 0) return null
+  return (
+    <div className="space-y-2">
+      {routines.map((r) => {
+        const existing = completions.find((c) => c.routine_id === r.id)
+        return (
+          <label key={r.id} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm">
+            <input type="checkbox" checked={existing?.done ?? false} onChange={() => onToggle(r.id, existing)} className="size-4 accent-[var(--accent)]" />
+            <span className={existing?.done ? 'text-white/40 line-through' : 'text-[var(--paper)]'}>{r.name}</span>
+          </label>
+        )
+      })}
+    </div>
+  )
 }

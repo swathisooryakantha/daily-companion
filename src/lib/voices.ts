@@ -21,13 +21,13 @@ export const MOOD_OPTIONS: { mood: Mood; label: string; emoji: string }[] = [
   { mood: 'great', label: 'Great / inspired', emoji: '✨' },
 ]
 
-export const PERSONALITY_INFO: Record<Personality, { name: string; tagline: string; emoji: string }> = {
-  cozy_grandma: { name: 'Cozy Grandma', tagline: 'wraps you in a blanket and means it', emoji: '🧶' },
-  proud_father: { name: 'Proud Father', tagline: 'steady, certain you\'ve got this', emoji: '🧔' },
-  deadpan_coach: { name: 'Deadpan Coach', tagline: 'tracks it straight, no theatrics', emoji: '🧢' },
-  drill_sergeant: { name: 'Drill Sergeant', tagline: 'gruff orders, soft underneath', emoji: '🫡' },
-  enthusiastic_friend: { name: 'Enthusiastic Best Friend', tagline: 'genuinely thinks you\'re great', emoji: '🙌' },
-  dramatic_narrator: { name: 'Dramatic Narrator', tagline: 'narrates your life like it matters', emoji: '🎭' },
+export const PERSONALITY_INFO: Record<Personality, { name: string; tagline: string; emoji: string; accent: string }> = {
+  cozy_grandma: { name: 'Cozy Grandma', tagline: 'wraps you in a blanket and means it', emoji: '🧶', accent: '#e8a89c' },
+  proud_father: { name: 'Proud Father', tagline: 'steady, certain you\'ve got this', emoji: '🧔', accent: '#8fc1d4' },
+  deadpan_coach: { name: 'Deadpan Coach', tagline: 'tracks it straight, no theatrics', emoji: '🧢', accent: '#ffd6a5' },
+  drill_sergeant: { name: 'Drill Sergeant', tagline: 'gruff orders, soft underneath', emoji: '🫡', accent: '#d97757' },
+  enthusiastic_friend: { name: 'Enthusiastic Best Friend', tagline: 'genuinely thinks you\'re great', emoji: '🙌', accent: '#ff9eb5' },
+  dramatic_narrator: { name: 'Dramatic Narrator', tagline: 'narrates your life like it matters', emoji: '🎭', accent: '#c9a0ff' },
 }
 
 type Tier = 'none' | 'some' | 'all'
@@ -253,4 +253,9 @@ export function getCompleteLine(personality: Personality, mode: Mode, seed: numb
 
 export function getMilestoneLine(personality: Personality, seed: number): string {
   return pick(seed, 'milestone', CONTENT[personality].milestone)
+}
+
+export function personalityThemeStyle(accent?: string): React.CSSProperties | undefined {
+  if (!accent) return undefined
+  return { '--accent': accent, '--accent-dim': `color-mix(in srgb, ${accent} 35%, var(--ink-100))` } as React.CSSProperties
 }
