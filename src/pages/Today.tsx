@@ -396,12 +396,18 @@ function CuriosityStep({
   const fact = curiosityForIndex(factIndex)
   const canTurnPage = entry.curiosity_viewed_count < MAX_CURIOSITY_TURNS
   const info = PERSONALITY_INFO[entry.personality]
+  const doneCount = completions.filter((c) => c.done).length
+  const isFullClear = routines.length > 0 && doneCount === routines.length && entry.grounding_done
 
   return (
-    <Card>
+    <Card className="relative overflow-hidden">
+      {isFullClear && <Confetti />}
       <Doodle emojis={info.doodles} />
       <PersonalityBadge name={info.name} emoji={info.emoji} />
       <VoiceLine className="mt-3">{getCuriosityIntro(entry.personality, seed)}</VoiceLine>
+      {isFullClear && (
+        <p className="mt-2 font-display text-base text-[var(--accent)]">🎉 Full clear today — every routine and grounding, done.</p>
+      )}
       <p className="mt-3 font-display text-lg leading-snug text-[var(--paper)]">{fact.text}</p>
       {fact.link && (
         <a href={fact.link} target="_blank" rel="noreferrer" className="mt-1.5 inline-block text-xs text-[var(--accent)] underline underline-offset-2">
