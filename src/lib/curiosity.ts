@@ -58,6 +58,65 @@ export const BOOK_PREMISE_ENTRIES: CuriosityEntry[] = [
   },
 ]
 
+/** Facts about attention, algorithms, and the attention economy. */
+export const DEINFLUENCING_ENTRIES: CuriosityEntry[] = [
+  {
+    id: 'd01',
+    text: 'The average person touches their phone over 2,600 times a day — and most of those touches weren\'t planned.',
+    link: 'https://en.wikipedia.org/wiki/Problematic_smartphone_use',
+  },
+  {
+    id: 'd02',
+    text: 'Social media feeds are designed to never end. The infinite scroll was invented in 2006 — its creator later said he regretted it.',
+    link: 'https://en.wikipedia.org/wiki/Infinite_scrolling',
+  },
+  {
+    id: 'd03',
+    text: 'Every recommendation algorithm optimises for engagement, not wellbeing. Outrage and anxiety are more engaging than calm.',
+    link: 'https://en.wikipedia.org/wiki/Social_media_and_mental_health',
+  },
+  {
+    id: 'd04',
+    text: '"Deinfluencing" started as a TikTok trend encouraging people not to buy things — on the same platform selling them things.',
+  },
+  {
+    id: 'd05',
+    text: 'Variable reward schedules — the same mechanism behind slot machines — are why pull-to-refresh feels satisfying even when nothing new is there.',
+    link: 'https://en.wikipedia.org/wiki/Reinforcement#Schedules',
+  },
+  {
+    id: 'd06',
+    text: 'The term "attention economy" was coined by Herbert Simon in 1971. He argued that a wealth of information creates a poverty of attention.',
+    link: 'https://en.wikipedia.org/wiki/Attention_economy',
+  },
+  {
+    id: 'd07',
+    text: 'Notification badges are red for a reason. Red signals urgency in almost every culture — it was a deliberate design choice.',
+  },
+  {
+    id: 'd08',
+    text: 'Most social media "likes" don\'t mean much — studies consistently show they correlate poorly with what people actually found valuable.',
+  },
+  {
+    id: 'd09',
+    text: 'Your phone\'s screen is calibrated to look more appealing than daylight. The warm yellows and deep blacks are tuned to hold your gaze.',
+  },
+  {
+    id: 'd10',
+    text: 'FOMO (fear of missing out) as a concept was defined by a marketing researcher in 1996 — originally to describe a product pitch strategy.',
+    link: 'https://en.wikipedia.org/wiki/Fear_of_missing_out',
+  },
+  {
+    id: 'd11',
+    text: 'The average attention span hasn\'t shrunk — the "goldfish" study was a marketing deck, not peer-reviewed science.',
+    link: 'https://en.wikipedia.org/wiki/Attention_span',
+  },
+  {
+    id: 'd12',
+    text: 'Deep boredom — with nothing to fill it — is when the brain consolidates memory and generates ideas. It\'s become rare.',
+  },
+]
+
 /** Finite — not a feed. Cycles by day, with a couple extra "turn the page" reveals at most. */
 export const CURIOSITY_ENTRIES: CuriosityEntry[] = [
   { id: 'c01', text: 'Octopuses have three hearts, and two of them stop beating when they swim.' },
@@ -101,6 +160,7 @@ export const CURIOSITY_ENTRIES: CuriosityEntry[] = [
   { id: 'c39', text: 'Saturn’s moon Enceladus shoots geysers of water into space from its south pole.' },
   { id: 'c40', text: 'Onions can make you cry because of a gas that reacts with the water in your eyes.' },
   ...BOOK_PREMISE_ENTRIES,
+  ...DEINFLUENCING_ENTRIES,
 ]
 
 export function curiosityForIndex(index: number): CuriosityEntry {
